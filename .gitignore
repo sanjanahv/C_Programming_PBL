@@ -1,0 +1,19 @@
+﻿# Compiles and Binaries
+fuzzer
+fuzzer.exe
+*.exe
+*.o
+*.bin
+build/
+fscrash
+fscrash_dbg
+
+# Generated Reports
+report.txt
+report.json
+ui/report.json
+
+# IDE / System files
+.vscode/
+.DS_Store
+Thumbs.db

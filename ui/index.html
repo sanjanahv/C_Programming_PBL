@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>littlefs Superblock Fuzzer Bench</title>
+<meta name="description" content="Visualise mutations, automatic repairs, and validations of littlefs superblock images.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Top bar ─────────────────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <span class="logo-icon">🛠️</span>
+      <span class="logo-text">lfs-fuzzer-bench</span>
+      <span class="logo-tag">Superblock Integrity Suite</span>
+    </div>
+  </div>
+  <nav class="tabs" id="mainTabs" role="tablist">
+    <button class="tab active" data-tab="layout" role="tab" aria-selected="true" id="tab-layout">💾 Binary Layout</button>
+    <button class="tab" data-tab="fuzzer" role="tab" aria-selected="false" id="tab-fuzzer">Fuzz Iterations</button>
+    <button class="tab" data-tab="theory" role="tab" aria-selected="false" id="tab-theory">Integrity Theory</button>
+    <button class="tab" data-tab="avalanche" role="tab" aria-selected="false" id="tab-avalanche">⚡ Avalanche Simulator</button>
+  </nav>
+  <div class="topbar-right">
+    <label class="upload-btn" for="fileInput" id="uploadLabel">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Load report.json
+      <input type="file" id="fileInput" accept="application/json" aria-label="Load report JSON">
+    </label>
+    <div class="report-badge" id="reportBadge" style="display:none">
+      <span class="badge-dot"></span>
+      <span id="reportName">report.json</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main content ───────────────────────────────────────────────────── -->
+<main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       BINARY LAYOUT TAB
+  ════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-panel active" id="panel-layout" role="tabpanel">
+    <div class="layout-wrapper">
+      <div class="layout-header">
+        <h2 class="layout-title">💾 Superblock Binary Layout Simulator</h2>
+        <p class="layout-subtitle">See exactly how the 32-byte <code>image.bin</code> file maps to the C <code>lfs_superblock_t</code> struct. Hover or click fields to inspect.</p>
+      </div>
+
+      <div class="layout-grid">
+        <!-- Hex Editor Visualizer -->
+        <div class="card hex-card">
+          <div class="hex-editor-header">
+            <div class="hex-offset-hdr">Offset</div>
+            <div class="hex-bytes-hdr">
+              <span>00</span><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span>
+              <span class="hex-sep">|</span>
+              <span>08</span><span>09</span><span>0A</span><span>0B</span><span>0C</span><span>0D</span><span>0E</span><span>0F</span>
+            </div>
+            <div class="hex-ascii-hdr">Decoded ASCII</div>
+          </div>
+
+          <div class="hex-editor-body">
+            <!-- Row 1 -->
+            <div class="hex-row">
+              <div class="hex-offset">00000000</div>
+              <div class="hex-bytes" id="hexRow1">
+                <!-- Bytes 0-7: magic -->
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="0">6C</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="1">69</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="2">74</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="3">74</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="4">6C</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="5">65</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="6">66</span>
+                <span class="hex-byte byte-magic" data-field="magic" data-byte="7">73</span>
+                <span class="hex-sep">|</span>
+                <!-- Bytes 8-11: version -->
+                <span class="hex-byte byte-version" data-field="version" data-byte="8">00</span>
+                <span class="hex-byte byte-version" data-field="version" data-byte="9">00</span>
+                <span class="hex-byte byte-version" data-field="version" data-byte="10">02</span>
+                <span class="hex-byte byte-version" data-field="version" data-byte="11">00</span>
+                <!-- Bytes 12-15: block_size -->
+                <span class="hex-byte byte-block_size" data-field="block_size" data-byte="12">00</span>
+                <span class="hex-byte byte-block_size" data-field="block_size" data-byte="13">10</span>
+                <span class="hex-byte byte-block_size" data-field="block_size" data-byte="14">00</span>
+                <span class="hex-byte byte-block_size" data-field="block_size" data-byte="15">00</span>
+              </div>
+              <div class="hex-ascii">
+                <span class="ascii-char char-magic" data-field="magic">l</span>
+                <span class="ascii-char char-magic" data-field="magic">i</span>
+                <span class="ascii-char char-magic" data-field="magic">t</span>
+                <span class="ascii-char char-magic" data-field="magic">t</span>
+                <span class="ascii-char char-magic" data-field="magic">l</span>
+                <span class="ascii-char char-magic" data-field="magic">e</span>
+                <span class="ascii-char char-magic" data-field="magic">f</span>
+                <span class="ascii-char char-magic" data-field="magic">s</span>
+                <span class="ascii-char char-version" data-field="version">.</span>
+                <span class="ascii-char char-version" data-field="version">.</span>
+                <span class="ascii-char char-version" data-field="version">.</span>
+                <span class="ascii-char char-version" data-field="version">.</span>
+                <span class="ascii-char char-block_size" data-field="block_size">.</span>
+                <span class="ascii-char char-block_size" data-field="block_size">.</span>
+                <span class="ascii-char char-block_size" data-field="block_size">.</span>
+                <span class="ascii-char char-block_size" data-field="block_size">.</span>
+              </div>
+            </div>
+            <!-- Row 2 -->
+            <div class="hex-row">
+              <div class="hex-offset">00000010</div>
+              <div class="hex-bytes" id="hexRow2">
+                <!-- Bytes 16-19: block_count -->
+                <span class="hex-byte byte-block_count" data-field="block_count" data-byte="16">00</span>
+                <span class="hex-byte byte-block_count" data-field="block_count" data-byte="17">02</span>
+                <span class="hex-byte byte-block_count" data-field="block_count" data-byte="18">00</span>
+                <span class="hex-byte byte-block_count" data-field="block_count" data-byte="19">00</span>
+                <!-- Bytes 20-23: name_max -->
+                <span class="hex-byte byte-name_max" data-field="name_max" data-byte="20">FF</span>
+                <span class="hex-byte byte-name_max" data-field="name_max" data-byte="21">00</span>
+                <span class="hex-byte byte-name_max" data-field="name_max" data-byte="22">00</span>
+                <span class="hex-byte byte-name_max" data-field="name_max" data-byte="23">00</span>
+                <span class="hex-sep">|</span>
+                <!-- Bytes 24-27: file_max -->
+                <span class="hex-byte byte-file_max" data-field="file_max" data-byte="24">FF</span>
+                <span class="hex-byte byte-file_max" data-field="file_max" data-byte="25">FF</span>
+                <span class="hex-byte byte-file_max" data-field="file_max" data-byte="26">FF</span>
+                <span class="hex-byte byte-file_max" data-field="file_max" data-byte="27">7F</span>
+                <!-- Bytes 28-31: crc -->
+                <span class="hex-byte byte-crc" data-field="crc" data-byte="28">0F</span>
+                <span class="hex-byte byte-crc" data-field="crc" data-byte="29">C8</span>
+                <span class="hex-byte byte-crc" data-field="crc" data-byte="30">27</span>
+                <span class="hex-byte byte-crc" data-field="crc" data-byte="31">A9</span>
+              </div>
+              <div class="hex-ascii">
+                <span class="ascii-char char-block_count" data-field="block_count">.</span>
+                <span class="ascii-char char-block_count" data-field="block_count">.</span>
+                <span class="ascii-char char-block_count" data-field="block_count">.</span>
+                <span class="ascii-char char-block_count" data-field="block_count">.</span>
+                <span class="ascii-char char-name_max" data-field="name_max">.</span>
+                <span class="ascii-char char-name_max" data-field="name_max">.</span>
+                <span class="ascii-char char-name_max" data-field="name_max">.</span>
+                <span class="ascii-char char-name_max" data-field="name_max">.</span>
+                <span class="ascii-char char-file_max" data-field="file_max">.</span>
+                <span class="ascii-char char-file_max" data-field="file_max">.</span>
+                <span class="ascii-char char-file_max" data-field="file_max">.</span>
+                <span class="ascii-char char-file_max" data-field="file_max">.</span>
+                <span class="ascii-char char-crc" data-field="crc">.</span>
+                <span class="ascii-char char-crc" data-field="crc">.</span>
+                <span class="ascii-char char-crc" data-field="crc">.</span>
+                <span class="ascii-char char-crc" data-field="crc">.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Details -->
+        <div class="card detail-card" id="layoutDetailCard">
+          <div class="detail-placeholder" id="detailPlaceholder">
+            <h3>Hover or Click any byte field</h3>
+            <p>Select a field in the hex editor or using the menu below to examine how C maps its struct to raw binary representation.</p>
+          </div>
+          <div class="detail-content" id="detailContent" style="display: none;">
+            <div class="detail-header-row">
+              <h3 id="detailFieldName" class="detail-field-name">field_name</h3>
+              <span id="detailType" class="detail-type">uint32_t</span>
+            </div>
+            <div class="detail-meta">
+              <span><strong>Byte Range:</strong> <span id="detailRange">0 - 0</span></span>
+              <span><strong>Size:</strong> <span id="detailSize">0 bytes</span></span>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">Hex Bytes (Little-Endian)</div>
+              <div id="detailHex" class="detail-val-mono">00 00 00 00</div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">Decoded Runtime Value</div>
+              <div id="detailParsed" class="detail-val-bold">0</div>
+            </div>
+            <p id="detailDesc" class="detail-desc">Field description goes here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Field Selector Buttons -->
+      <div class="layout-buttons">
+        <button class="layout-btn btn-magic" data-field="magic">magic</button>
+        <button class="layout-btn btn-version" data-field="version">version</button>
+        <button class="layout-btn btn-block_size" data-field="block_size">block_size</button>
+        <button class="layout-btn btn-block_count" data-field="block_count">block_count</button>
+        <button class="layout-btn btn-name_max" data-field="name_max">name_max</button>
+        <button class="layout-btn btn-file_max" data-field="file_max">file_max</button>
+        <button class="layout-btn btn-crc" data-field="crc">crc</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       FUZZER TAB
+  ════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-panel" id="panel-fuzzer" role="tabpanel">
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📂</div>
+      <h2>Load a Fuzz Report to Begin</h2>
+      <p>Compile the project with <code>make</code>, run <code>fuzzer.exe</code> to generate <code>report.json</code>, then click the <strong>Load report.json</strong> button above.</p>
+      <div class="quick-cmds">
+        <div class="cmd-block"><span class="cmd-label">Compile project</span><code>mingw32-make</code></div>
+        <div class="cmd-block"><span class="cmd-label">Run fuzzer</span><code>.\fuzzer.exe</code></div>
+        <div class="cmd-block"><span class="cmd-label">Output generated</span><code>report.json & report.txt</code></div>
+      </div>
+    </div>
+
+    <!-- Active dashboard content -->
+    <div id="fuzzContent" style="display:none">
+      
+      <!-- Stepper timeline -->
+      <div class="timeline-card">
+        <div class="card-title">Fuzzing Iterations Timeline</div>
+        <div class="timeline-stepper" id="timelineStepper"></div>
+      </div>
+
+      <!-- Iteration details layout -->
+      <div class="iter-grid">
+        
+        <!-- Left: Telemetry & Verdict -->
+        <div class="iter-left">
+          
+          <!-- Verdict Card -->
+          <div class="card verdict-card" id="verdictCard">
+            <div class="verdict-header">
+              <span class="verdict-label">Iteration Verdict</span>
+              <span class="verdict-badge" id="iterVerdict">—</span>
+            </div>
+            <div class="verdict-summary" id="verdictSummary"></div>
+          </div>
+
+          <!-- Mutation details -->
+          <div class="card">
+            <div class="card-title">Mutation Telemetry</div>
+            <div class="telemetry-log" id="telemetryLog"></div>
+          </div>
+
+          <!-- Violations list -->
+          <div class="card" id="violationsCard" style="display:none">
+            <div class="card-title text-bad">Detected Violations (Post-Mitigation)</div>
+            <div class="violations-list" id="violationsList"></div>
+          </div>
+
+        </div>
+
+        <!-- Right: Superblock State Comparison -->
+        <div class="iter-right">
+          <div class="card">
+            <div class="card-title">Superblock Struct Field Comparison</div>
+            <div class="comparison-grid">
+              
+              <!-- Before Column -->
+              <div class="comp-col">
+                <div class="comp-col-title comp-title-before">Original Baseline</div>
+                <div class="comp-fields" id="fieldsBefore"></div>
+              </div>
+
+              <!-- Fuzzed Column -->
+              <div class="comp-col">
+                <div class="comp-col-title comp-title-fuzzed">Fuzzed (Pre-Mitigation)</div>
+                <div class="comp-fields" id="fieldsFuzzed"></div>
+              </div>
+
+              <!-- Repaired Column -->
+              <div class="comp-col">
+                <div class="comp-col-title comp-title-repaired">Repaired (Post-Mitigation)</div>
+                <div class="comp-fields" id="fieldsRepaired"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       THEORY TAB
+  ════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-panel" id="panel-theory" role="tabpanel">
+    <div class="theory-body" id="theoryBody"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       AVALANCHE SIMULATOR TAB
+  ════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-panel" id="panel-avalanche" role="tabpanel">
+    <div class="avalanche-wrapper">
+
+      <!-- Header -->
+      <div class="av-header">
+        <h2 class="av-title">⚡ CRC32 Avalanche Effect Simulator</h2>
+        <p class="av-subtitle">Type any input. Flip a single bit. Watch the CRC32 fingerprint change dramatically — proving that even the tiniest corruption cannot go undetected.</p>
+      </div>
+
+      <!-- Two-column input area -->
+      <div class="av-input-row">
+
+        <!-- Original input -->
+        <div class="av-input-card">
+          <div class="av-input-label">Original Input</div>
+          <textarea id="avInput" class="av-textarea" rows="3" placeholder="Type anything here — e.g. littlefs"
+            spellcheck="false" autocomplete="off">littlefs</textarea>
+          <div class="av-byte-row" id="avByteRow"></div>
+        </div>
+
+        <!-- Bit flip controls -->
+        <div class="av-flip-card">
+          <div class="av-input-label">Bit Flip Control</div>
+          <div class="av-flip-grid">
+            <div class="av-flip-group">
+              <label class="av-flip-lbl">Select byte</label>
+              <select id="avByteSelect" class="av-select"></select>
+            </div>
+            <div class="av-flip-group">
+              <label class="av-flip-lbl">Select bit (0 = LSB)</label>
+              <select id="avBitSelect" class="av-select">
+                <option value="0">Bit 0 (LSB)</option>
+                <option value="1">Bit 1</option>
+                <option value="2">Bit 2</option>
+                <option value="3">Bit 3</option>
+                <option value="4">Bit 4</option>
+                <option value="5">Bit 5</option>
+                <option value="6">Bit 6</option>
+                <option value="7" selected>Bit 7 (MSB)</option>
+              </select>
+            </div>
+          </div>
+          <button class="av-flip-btn" id="avFlipBtn">⚡ Flip the Bit</button>
+          <button class="av-reset-btn" id="avResetBtn">↺ Reset</button>
+          <div class="av-flipped-info" id="avFlippedInfo" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <!-- CRC side by side -->
+      <div class="av-crc-row">
+        <div class="av-crc-box av-crc-original">
+          <div class="av-crc-label">Original CRC32</div>
+          <div class="av-crc-value" id="avCrcOriginal">—</div>
+          <div class="av-crc-bin" id="avCrcOriginalBin"></div>
+        </div>
+        <div class="av-crc-arrow">→</div>
+        <div class="av-crc-box av-crc-flipped">
+          <div class="av-crc-label">After Bit-Flip CRC32</div>
+          <div class="av-crc-value" id="avCrcFlipped">—</div>
+          <div class="av-crc-bin" id="avCrcFlippedBin"></div>
+        </div>
+      </div>
+
+      <!-- Avalanche meter -->
+      <div class="av-meter-card" id="avMeterCard" style="display:none">
+        <div class="av-meter-header">
+          <span class="av-meter-title">Avalanche Effect Meter</span>
+          <span class="av-meter-stat" id="avMeterStat"></span>
+        </div>
+        <div class="av-meter-bar-wrap">
+          <div class="av-meter-bar" id="avMeterBar"></div>
+        </div>
+        <p class="av-meter-caption" id="avMeterCaption"></p>
+      </div>
+
+      <!-- 32-bit visual diff grid -->
+      <div class="av-bitgrid-card" id="avBitgridCard" style="display:none">
+        <div class="av-input-label" style="margin-bottom:12px">32-Bit Output Diff — each square is one bit of the CRC32</div>
+        <div class="av-bitgrid-legend">
+          <span class="av-legend-dot bit-same"></span> Same &nbsp;
+          <span class="av-legend-dot bit-flipped"></span> Changed
+        </div>
+        <div class="av-bitgrid" id="avBitGrid"></div>
+      </div>
+
+      <!-- Explanation box -->
+      <div class="av-explain-card">
+        <div class="av-explain-title">💡 Why the Avalanche Effect Matters</div>
+        <div class="av-explain-body">
+          <p>CRC32 is designed so that <strong>a tiny 1-bit change in input causes roughly half the output bits to change</strong>. This is called the <em>Avalanche Effect</em>.</p>
+          <ul>
+            <li>If a corrupted superblock accidentally produced the <em>same</em> CRC as the original, the corruption would slip through completely undetected.</li>
+            <li>Because ~50% of output bits flip for any single input bit change, the probability of a false match is only <strong>1 in 4,294,967,296</strong> (1 in 2³²).</li>
+            <li>This is why littlefs trusts CRC32 to guard the superblock — even flash bit-flips or partial writes cannot silently corrupt the metadata.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <span>lfs-fuzzer-bench — littlefs Superblock validation tool</span>
+  <span>Visualizes mutations, auto-healing repairs, and validation outcomes.</span>
+</footer>
+
+<script src="theory.js"></script>
+<script src="app.js"></script>
+<script src="avalanche.js"></script>
+<script src="layout.js"></script>
+</body>
+</html>
