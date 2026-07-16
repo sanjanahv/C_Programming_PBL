@@ -1,4 +1,4 @@
-﻿# Compiles and Binaries
+# Compiles and Binaries
 fuzzer
 fuzzer.exe
 *.exe
@@ -17,3 +17,6 @@ ui/report.json
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Local Only Docs
+docs/COMPLETE_TECHNICAL_GUIDE.md
